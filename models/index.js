@@ -31,6 +31,7 @@ let ChatRoom = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
+	name: String,
 	creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 	colaborator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });

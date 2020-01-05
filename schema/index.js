@@ -1,6 +1,8 @@
 const graphql = require('graphql');
 const db = require('../models');
 const User = db.Mongoose.model('usercollection', db.User, 'usercollection');
+const ChatRoom = db.Mongoose.model('chatroom', db.ChatRoom, 'chatroom');
+const Message = db.Mongoose.model('messageroom', db.Message, 'messageroom');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const authConfig = require('../config/auth.json');
@@ -31,6 +33,23 @@ const UserType = new GraphQLObjectType({
 		role: { type: GraphQLInt },
 		token: { type: GraphQLString },
 	}),
+});
+
+const Chat = new GraphQLObjectType({
+	name: 'Chat',
+	fields: () => ({
+		id: { type: GraphQLID },
+		name: { type: GraphQLString },
+		creator: {
+			type: UserType,
+		},
+		colaborator: { type: UserType },
+	}),
+});
+
+const Message = new GraphQLObjectType({
+	message: { type: GraphQLString },
+	emissor: { type: UserType },
 });
 
 const RootQuery = new GraphQLObjectType({
