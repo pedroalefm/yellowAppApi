@@ -2,7 +2,6 @@ const graphql = require('graphql');
 const db = require('../models');
 const User = db.Mongoose.model('usercollection', db.User, 'usercollection');
 const ChatRoom = db.Mongoose.model('chatroom', db.ChatRoom, 'chatroom');
-const Message = db.Mongoose.model('messageroom', db.Message, 'messageroom');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const authConfig = require('../config/auth.json');
@@ -35,7 +34,7 @@ const UserType = new GraphQLObjectType({
 	}),
 });
 
-const Chat = new GraphQLObjectType({
+const ChatType = new GraphQLObjectType({
 	name: 'Chat',
 	fields: () => ({
 		id: { type: GraphQLID },
@@ -47,10 +46,10 @@ const Chat = new GraphQLObjectType({
 	}),
 });
 
-const Message = new GraphQLObjectType({
-	message: { type: GraphQLString },
-	emissor: { type: UserType },
-});
+// const Message = new GraphQLObjectType({
+// 	message: { type: GraphQLString },
+// 	emissor: { type: UserType },
+// });
 
 const RootQuery = new GraphQLObjectType({
 	name: 'RootQuery',
@@ -114,6 +113,33 @@ const Mutation = new GraphQLObjectType({
 						token: generateToken({ id: user.id }),
 					};
 					return returnUser;
+				} catch (e) {
+					throw new GraphQLError(e);
+				}
+			},
+		},
+		createChat: {
+			type: ChatType,
+			args: {
+				name: { type: new GraphQLNonNull(GraphQLString) },
+				creator: { type: new GraphQLNonNull(GraphQLString) },
+			},
+			async resolve(parent, args) {
+				try {
+					let chatRoom = await ChatRoom.create({
+						name: args.name,
+						creator: args.creator,
+					});
+					let createdChat = ChatRoom.findById(chatRoom._id).populate({
+						path: 'creator',
+						model: User,
+					});
+					let returnChat = {
+						id: createdChat._id,
+						name: createdChat.name,
+						creator: createdChat.creator,
+					};
+					return returnChat;
 				} catch (e) {
 					throw new GraphQLError(e);
 				}

@@ -34,16 +34,7 @@ let ChatRoom = new mongoose.Schema({
 	name: String,
 	creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 	colaborator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-});
-
-let Message = new mongoose.Schema({
-	emissor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-	message: String,
-	createdAt: {
-		type: Date,
-		default: Date.now,
-	},
-	chatroom: { type: mongoose.Schema.Types.ObjectId, ref: 'ChatRoom' },
+	messages: { creatorId: String, message: String, status: Boolean },
 });
 
 User.pre('save', async function(next) {
@@ -57,5 +48,4 @@ module.exports = {
 	Mongoose: mongoose,
 	User: User,
 	ChatRoom: ChatRoom,
-	Message: Message,
 };
