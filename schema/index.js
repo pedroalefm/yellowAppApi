@@ -31,6 +31,16 @@ const UserType = new GraphQLObjectType({
 		email: { type: GraphQLString },
 		role: { type: GraphQLInt },
 		token: { type: GraphQLString },
+		chatRooms: {
+			type: new GraphQLList(ChatType),
+			resolve(parent, args) {
+				if (parent.role === 0) {
+					return ChatRoom.find({ creator: parent.id });
+				} else {
+					return ChatRoom.find({ colaborator: parent.id });
+				}
+			},
+		},
 	}),
 });
 
@@ -41,20 +51,23 @@ const ChatType = new GraphQLObjectType({
 		name: { type: GraphQLString },
 		creator: {
 			type: UserType,
+			resolve(parent, args) {
+				return User.findById(parent.creator);
+			},
 		},
-		colaborator: { type: UserType },
+		colaborator: {
+			type: UserType,
+			resolve(parent, args) {
+				return User.findById(parent.colaborator);
+			},
+		},
 	}),
 });
-
-// const Message = new GraphQLObjectType({
-// 	message: { type: GraphQLString },
-// 	emissor: { type: UserType },
-// });
 
 const RootQuery = new GraphQLObjectType({
 	name: 'RootQuery',
 	fields: {
-		login: {
+		auth: {
 			type: UserType,
 			args: { email: { type: GraphQLString }, password: { type: GraphQLString } },
 			async resolve(parent, args) {
@@ -122,7 +135,7 @@ const Mutation = new GraphQLObjectType({
 			type: ChatType,
 			args: {
 				name: { type: new GraphQLNonNull(GraphQLString) },
-				creator: { type: new GraphQLNonNull(GraphQLString) },
+				creator: { type: new GraphQLNonNull(GraphQLID) },
 			},
 			async resolve(parent, args) {
 				try {
@@ -130,16 +143,31 @@ const Mutation = new GraphQLObjectType({
 						name: args.name,
 						creator: args.creator,
 					});
-					let createdChat = ChatRoom.findById(chatRoom._id).populate({
-						path: 'creator',
-						model: User,
-					});
 					let returnChat = {
-						id: createdChat._id,
-						name: createdChat.name,
-						creator: createdChat.creator,
+						id: chatRoom._id,
+						name: chatRoom.name,
 					};
 					return returnChat;
+				} catch (e) {
+					throw new GraphQLError(e);
+				}
+			},
+		},
+		addColaborator: {
+			type: ChatType,
+			args: {
+				chatId: { type: new GraphQLNonNull(GraphQLID) },
+				colaboratorId: { type: new GraphQLNonNull(GraphQLID) },
+			},
+			async resolve(parent, args) {
+				try {
+					ChatRoom.update(
+						{ _id: args.chatId },
+						{
+							colaborator: args.colaboratorId,
+						}
+					);
+					return 'Colaborador adicionado';
 				} catch (e) {
 					throw new GraphQLError(e);
 				}

@@ -18,7 +18,7 @@ let User = new mongoose.Schema({
 		require: true,
 		select: false,
 	},
-	// role -> 0 : user / 1 : colaborator
+	// role -> 0 : creator / 1 : colaborator
 	role: Number,
 	createdAt: {
 		type: Date,
